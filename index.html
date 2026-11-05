@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EYES UP FRONT</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js" } }
+</script>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div id="topbar">
+    <div id="dayLabel">MONDAY</div>
+    <div id="clock">1:00</div>
+    <div id="strikes"></div>
+  </div>
+  <div id="meters">
+    <div class="meter"><span>URGE</span><div class="bar"><i id="urgeBar"></i></div></div>
+    <div class="meter"><span>FUN</span><div class="bar"><i id="funBar"></i><b id="funQuota"></b></div></div>
+  </div>
+  <div id="suspicion"><div id="eye">&#9673;</div><div class="bar"><i id="susBar"></i></div></div>
+  <div id="subtitle"></div>
+  <div id="hint"></div>
+</div>
+
+<!-- Overlays -->
+<div id="title" class="screen">
+  <h1>EYES UP FRONT</h1>
+  <p class="sub">Room 113 &middot; 6th Period</p>
+  <div id="daySelect"></div>
+  <p class="blink" id="startPrompt">CLICK TO START CLASS</p>
+  <div class="controls">
+    <b>MOUSE</b> look around &nbsp; <b>SPACE</b> open/close laptop &nbsp; <b>SHIFT</b> glance up (in laptop)<br>
+    <b>1 2 3</b> switch apps &nbsp; <b>TAB</b> panic: fake essay &nbsp; <b>B</b> hide behind book<br>
+    <b>A/D</b> move in games &nbsp; <b>V</b> video sound &nbsp; <b>ENTER</b> reply in chat &nbsp; <b>M</b> mute &nbsp; <b>P</b> pause
+  </div>
+  <p class="warn">Contains flashing lights, loud sounds and jump scares. Headphones recommended.</p>
+</div>
+
+<div id="card" class="screen hidden"><div id="cardInner"></div></div>
+<div id="slip" class="hidden"><div class="slipPaper"><h2>DETENTION SLIP</h2><p id="slipText"></p><p class="sig">&mdash; Mrs. Halloway</p></div></div>
+<div id="quiz" class="hidden"><div class="slipPaper"><h2>POP QUIZ</h2><p class="scrawl">WHO WERE YOU LOOKING AT?</p></div></div>
+<div id="flash" class="hidden"></div>
+<canvas id="scare" class="hidden" width="160" height="120"></canvas>
+
+<script src="js/sfx.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
