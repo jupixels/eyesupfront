@@ -193,6 +193,11 @@ export class Teacher {
     // Moves only while you are not looking at her
     const cfg = this.cfg;
     this.frozen = ctx.seen;
+    // she can't hold a stare forever: after a few seconds of being watched she gives up this approach
+    if (ctx.seen && !this.reached) {
+      this.seenT = (this.seenT || 0) + dt;
+      if (this.seenT > (cfg.stareMax || 2.5)) { this.seenT = 0; this.onEvent && this.onEvent("stareDone"); return; }
+    } else this.seenT = Math.max(0, (this.seenT || 0) - dt * 0.5);
     if (!this.frozen && !this.reached) {
       if (!this.path.length) this.pathToward(PLAYER_POS.x, PLAYER_POS.z - 0.3);
       const done = this.walk(dt, cfg.stalkSpeed || 1.2);

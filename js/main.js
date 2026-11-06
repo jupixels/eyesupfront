@@ -156,6 +156,11 @@ function teacherEvent(e) {
   if (e === "faced" && S.t > S.nextLine) { S.nextLine = S.t + rand(12, 20); say(S.cfg.lines[S.lineIdx++ % S.cfg.lines.length]); }
   if (e === "suspicious") say("hm");
   if (e === "swivel") { audio.play("creak", { volume: 0.5, rate: 0.6 }); }
+  if (e === "stareDone") {
+    // lights stutter and she's back at the board, teaching like nothing happened
+    S.flicker = 0.45; audio.play("flicker", { volume: 0.7 });
+    restStalk();
+  }
 }
 
 function stepSound(t) {
@@ -291,8 +296,15 @@ function endScare() {
   teacher.pos.y = 0; teacher.lean = 0; teacher.hideCone = false; teacher.setFace(S.cfg.face);
   teacher.sus = 0; teacher.goToBoardNow(); teacher.visible(true);
   teacher.reached = false;
+  if (S.stalk) restStalk();
   mode = "play";
   if (seq.strike) addStrike();
+}
+function restStalk() {
+  teacher.stalking = false; teacher.reached = false; teacher.seenT = 0; teacher.path = [];
+  teacher.goToBoardNow();
+  const r = S.cfg.stalkRest || [8, 12];
+  S.stalkRest = rand(r[0], r[1]) * (S.finale ? 0.5 : 1);
 }
 function addStrike() {
   S.strikes++;
@@ -341,7 +353,7 @@ function runFx(fx) {
       } else S.events.push({ t: S.t / cfg.dur + 0.04, fx: "reflection" });
       break;
     case "lightsOutDesk": startLightsOutDesk(); break;
-    case "stalk": S.stalk = true; teacher.stalking = true; teacher.path = []; hint(""); break;
+    case "stalk": S.stalk = true; teacher.stalking = true; teacher.path = []; teacher.reached = false; teacher.seenT = 0; if (S.i === 3) hint("She only moves when you aren't looking at her."); setTimeout(() => S && hint(""), 5000); break;
     case "ghostFeed":
       ghost.group.visible = true; ghost.placeAt(PLAYER_POS.x + 0.25, PLAYER_POS.z + 0.75, Math.PI); ghost.setFace("wrong"); ghost.headYaw = 0.3; ghost.updateCone({});
       S.ghostT = 14; audio.play("breath", { volume: 0.4 });
@@ -395,10 +407,10 @@ function updateBehind(dt) {
   if (b.t > 1.5 && turned) {
     S.behind = null;
     jumpscare({ behind: true, line: "found" });
-    teacher.stalking = true; return;
+    restStalk(); return;
   }
   if (b.t > 6) {
-    S.behind = null; say("d5_5"); teacher.goToBoardNow(); teacher.visible(true); teacher.stalking = true; teacher.path = [];
+    S.behind = null; say("d5_5"); teacher.visible(true); restStalk();
   }
 }
 
@@ -514,7 +526,12 @@ function update(dt, time) {
     }
   }
   if (S.subUntil && S.t > S.subUntil) { $("subtitle").textContent = ""; S.subUntil = 0; }
-  if (cfg.stalkFrom !== undefined && prog >= cfg.stalkFrom && !S.stalk && !S.behind) { S.stalk = true; teacher.stalking = true; }
+  if (cfg.stalkFrom !== undefined && prog >= cfg.stalkFrom && !S.stalk && !S.behind) runFx("stalk");
+  // stalking comes in bursts: between them she teaches normally so you get chances to use the laptop
+  if (S.stalk && !teacher.stalking && !S.behind && S.stalkRest > 0) {
+    S.stalkRest -= dt;
+    if (S.stalkRest <= 0 && teacher.state === "write") { teacher.stalking = true; teacher.path = []; teacher.reached = false; teacher.seenT = 0; audio.play("creak", { volume: 0.4, rate: 0.7 }); }
+  }
 
   // ---- laptop / urge / fun
   S.essayLock = Math.max(0, S.essayLock - dt);
