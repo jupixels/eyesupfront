@@ -1,7 +1,8 @@
 // Mrs. Halloway: body, vision cone, patrol/watch AI, stalking
 import * as THREE from "three";
 import { lit, flat, canvasTex } from "./psx.js";
-import { drawFace, PLAYER_POS } from "./world.js";
+import { PLAYER_POS } from "./world.js";
+import { makeTeacherBody, headTex } from "./models.js";
 
 const BOARD_Z = -7.6;
 const FRONT_Z = -5.2;
@@ -9,17 +10,17 @@ const AISLES = [-3, 0, 3];
 const rand = (a, b) => a + Math.random() * (b - a);
 const angDiff = (a, b) => { let d = b - a; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; };
 
-function box(w, h, d, m) { return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); }
 
 export class Teacher {
   constructor(scene, audio) {
     this.scene = scene; this.audio = audio;
+    const base = { skin: "#e6c6a4", hair: "#77777c", brow: "#5a5a5e", iris: "#3a4a5a" };
     this.faces = {
-      normal: canvasTex(32, 32, (g, w, h) => drawFace(g, w, h, { skin: "#e9c9a8", hair: "#6a6a70", glasses: true, mouth: "flat" })),
-      smile: canvasTex(32, 32, (g, w, h) => drawFace(g, w, h, { skin: "#e9c9a8", hair: "#6a6a70", glasses: true, mouth: "smile" })),
-      wrong: canvasTex(32, 32, (g, w, h) => drawFace(g, w, h, { skin: "#d8c0a8", hair: "#6a6a70", eyes: "wide", mouth: "grin" })),
-      monster: canvasTex(32, 32, (g, w, h) => drawFace(g, w, h, { skin: "#c8b8a8", hair: "#3a3a40", eyes: "black", mouth: "open", blood: true })),
-      grin: canvasTex(32, 32, (g, w, h) => drawFace(g, w, h, { skin: "#c8b8a8", hair: "#3a3a40", eyes: "black", mouth: "grin" })),
+      normal: headTex({ ...base, mouth: "flat" }),
+      smile: headTex({ ...base, mouth: "smile" }),
+      wrong: headTex({ ...base, skin: "#d8c4ae", eyes: "wide", mouth: "grin" }),
+      monster: headTex({ ...base, skin: "#c4b4a4", hair: "#3a3a40", eyes: "black", mouth: "open", blood: true }),
+      grin: headTex({ ...base, skin: "#c4b4a4", hair: "#3a3a40", eyes: "black", mouth: "grin" }),
     };
     this.build();
     this.buildCone();
@@ -27,32 +28,12 @@ export class Teacher {
   }
 
   build() {
-    const g = new THREE.Group();
-    const cardigan = lit({ color: 0x7a2430 }), skirt = lit({ color: 0x2a2a3a }), stock = lit({ color: 0x2a1e1e }), skin = lit({ color: 0xe9c9a8 }), hair = lit({ color: 0x6a6a70 });
-    this.skinMat = skin;
-    for (const x of [-0.1, 0.1]) { const l = box(0.1, 0.55, 0.1, stock); l.position.set(x, 0.28, 0); g.add(l); const shoe = box(0.11, 0.06, 0.2, lit({ color: 0x111111 })); shoe.position.set(x, 0.03, 0.04); g.add(shoe); }
-    const sk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 0.45, 6), skirt); sk.position.y = 0.75; g.add(sk);
-    this.body = new THREE.Group(); this.body.position.y = 0.95; g.add(this.body);
-    const torso = box(0.44, 0.55, 0.26, cardigan); torso.position.y = 0.27; this.body.add(torso);
-    this.arms = [];
-    for (const s of [-1, 1]) {
-      const pivot = new THREE.Group(); pivot.position.set(0.28 * s, 0.5, 0);
-      const arm = box(0.1, 0.6, 0.1, cardigan); arm.position.y = -0.3; pivot.add(arm);
-      const hand = box(0.08, 0.1, 0.08, skin); hand.position.y = -0.63; pivot.add(hand);
-      this.body.add(pivot); this.arms.push(pivot);
-    }
-    this.neck = new THREE.Group(); this.neck.position.y = 0.55; this.body.add(this.neck);
-    const neckM = box(0.1, 0.12, 0.1, skin); neckM.position.y = 0.05; this.neck.add(neckM);
-    this.neckMesh = neckM;
-    this.headPivot = new THREE.Group(); this.headPivot.position.y = 0.11; this.neck.add(this.headPivot);
-    this.faceMat = lit({ map: this.faces.normal });
-    this.head = box(0.28, 0.32, 0.28, [hair, hair, hair, skin, this.faceMat, hair]); this.head.position.y = 0.16; this.headPivot.add(this.head);
-    const bun = box(0.16, 0.14, 0.12, hair); bun.position.set(0, 0.3, -0.14); this.headPivot.add(bun);
-    this.group = g;
-    this.scene.add(g);
-    // eye glints (visible in dark on late days)
+    const b = makeTeacherBody(this.faces.normal);
+    Object.assign(this, { group: b.group, body: b.body, arms: b.arms, neck: b.neck, neckMesh: b.neckMesh, headPivot: b.headPivot, head: b.head, faceMat: b.faceMat });
+    this.scene.add(this.group);
+    // eye glints (visible in the dark on late days)
     this.eyeGlow = new THREE.Group();
-    for (const x of [-0.065, 0.065]) { const e = new THREE.Mesh(new THREE.PlaneGeometry(0.035, 0.025), new THREE.MeshBasicMaterial({ color: 0xff2020 })); e.position.set(x, 0.18, 0.145); this.eyeGlow.add(e); }
+    for (const x of [-0.042, 0.042]) { const e = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 0.02), new THREE.MeshBasicMaterial({ color: 0xff2020 })); e.position.set(x, 0.13, 0.13); this.eyeGlow.add(e); }
     this.headPivot.add(this.eyeGlow); this.eyeGlow.visible = false;
   }
 
@@ -83,11 +64,11 @@ export class Teacher {
     this.path = []; this.sus = 0; this.stalking = false; this.frozen = false;
     this.scripted = false; this.reached = false; this.lean = 0;
     this.group.scale.set(1, cfg.tall || 1, 1);
-    this.neckMesh.scale.y = cfg.neck || 1; this.headPivot.position.y = 0.11 + 0.12 * ((cfg.neck || 1) - 1);
+    const nk = cfg.neck || 1; this.neckMesh.scale.y = nk; this.neckMesh.position.y = 0.05 * nk; this.headPivot.position.y = 0.1 * nk;
     this.setFace(cfg.face || "normal");
     this.eyeGlow.visible = !!cfg.glow;
     this.visible(true);
-    this.setConeShape(cfg.coneRange || 9, cfg.coneHalf || 0.5);
+    this.setConeShape(cfg.coneRange || 14, cfg.coneHalf || 0.45);
   }
   setFace(f) { this.face = f; this.faceMat.map = this.faces[f]; this.faceMat.needsUpdate = true; }
   visible(v) { this.group.visible = v; this.cone.visible = v && !this.hideCone; }
@@ -181,7 +162,7 @@ export class Teacher {
         if (this.timer <= 0) { this.state = "return"; this.pathToBoard(); }
         break;
       case "patrol":
-        if (this.walk(dt, cfg.walkSpeed || 1.0)) { this.state = "patrolLook"; this.timer = rand(1.2, 2.2); this.scanBase = this.yaw; this.scanT = 0; }
+        if (this.walk(dt, cfg.walkSpeed || 1.35)) { this.state = "patrolLook"; this.timer = rand(1.2, 2.2); this.scanBase = this.yaw; this.scanT = 0; }
         break;
       case "patrolLook":
         this.scanT += dt; this.timer -= dt;
@@ -189,14 +170,14 @@ export class Teacher {
         if (this.timer <= 0) { this.state = "return"; this.pathToBoard(); }
         break;
       case "return":
-        if (this.walk(dt, cfg.walkSpeed || 1.0)) { this.state = "face"; }
+        if (this.walk(dt, cfg.walkSpeed || 1.35)) { this.state = "face"; }
         break;
       case "face":
         if (this.turnTo(Math.PI, 5, dt)) { this.state = "write"; this.timer = rand(cfg.writeMin || 5, cfg.writeMax || 9); }
         break;
       case "investigate": {
         if (!this.path.length && this.distToPlayer() > 2.4 && !this.invArrived) this.pathToward(PLAYER_POS.x, PLAYER_POS.z - 0.4);
-        if (this.path.length) { if (this.walk(dt, (cfg.walkSpeed || 1) * 1.15)) this.invArrived = true; }
+        if (this.path.length) { if (this.walk(dt, (cfg.walkSpeed || 1.35) * 1.15)) this.invArrived = true; }
         else this.turnTo(this.yawToPlayer(), 4, dt);
         if (this.sus < 15) { this.invArrived = false; this.state = "return"; this.pathToBoard(); }
         break;
@@ -224,8 +205,11 @@ export class Teacher {
 
   animate(dt) {
     const s = Math.sin(this.walkPhase || 0);
-    this.arms[0].rotation.x = this.armWrite ? -2.6 + Math.sin(performance.now() / 120) * 0.15 : s * 0.3;
+    this.arms[0].rotation.x = this.armWrite ? -2.5 + Math.sin(performance.now() / 120) * 0.12 : s * 0.3;
+    this.arms[0].rotation.z = this.armWrite ? 0.25 : 0;
+    this.arms[0].userData.elbow.rotation.x = this.armWrite ? -0.5 : -0.15;
     this.arms[1].rotation.x = -s * 0.3;
+    this.arms[1].userData.elbow.rotation.x = this.armWrite ? -1.2 : -0.15;
     if (this.armWrite) this.headYaw = this.swivel ? this.headYaw : 0;
   }
 
@@ -248,15 +232,15 @@ export class Teacher {
     const ly = this.lookYaw();
     const fwd = new THREE.Vector2(Math.sin(ly), Math.cos(ly));
     const ang = Math.acos(Math.max(-1, Math.min(1, v.clone().normalize().dot(fwd))));
-    const range = cfg.coneRange || 9, half = cfg.coneHalf || 0.5;
+    const range = cfg.coneRange || 14, half = cfg.coneHalf || 0.45;
     const inCone = this.group.visible && dist < range && ang < half && !ctx.lightsOut;
     const front = this.pos.z < PLAYER_POS.z - 0.6;
     const blocked = ctx.book > 0.8 && front && dist > 1.4;
     let rise = 0;
-    if (inCone && ctx.bad && !blocked) rise += 48 * (1.25 - dist / range) * (cfg.detect || 1);
+    if (inCone && ctx.bad && !blocked) rise += 210 * (1.3 - dist / range) * (cfg.detect || 1);
     if (inCone && ctx.book > 0.8 && dist < 3.2) rise += 12;
     if (ctx.noise > 0 && dist < 8 && this.group.visible) rise += ctx.noise * 34 * (1 - dist / 8);
-    if (rise > 0) this.sus += rise * dt; else this.sus -= (cfg.decay || 8) * dt;
+    if (rise > 0) this.sus += rise * dt; else this.sus -= (cfg.decay || 14) * dt;
     this.sus = Math.max(0, Math.min(100, this.sus));
     this.inCone = inCone;
     return { inCone, dist, blocked };

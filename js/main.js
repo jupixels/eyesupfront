@@ -133,7 +133,7 @@ function startDay(i) {
   $("funQuota").style.left = "100%";
   $("funBar").parentElement.parentElement.style.display = cfg.quota ? "" : "none";
   $("hint").textContent = ""; $("subtitle").textContent = ""; S.subUntil = 0;
-  $("card").classList.add("hidden"); $("title").classList.add("hidden");
+  $("card").classList.add("hidden"); $("title").classList.add("hidden"); $("quiz").classList.add("hidden"); $("slip").classList.add("hidden");
   $("hud").classList.remove("hidden");
   mode = "play";
   $("game").requestPointerLock && $("game").requestPointerLock();
@@ -179,12 +179,7 @@ addEventListener("keydown", (e) => {
   if (mode === "paused" && (e.code === "KeyP" || e.code === "Escape")) { pause(false); return; }
   if (mode !== "play" || view.lockT > 0) return;
   if (e.code === "Space") toggleLaptop();
-  else if (e.code === "Tab") {
-    if (view.mode === "laptop" && S.essayLock <= 0) {
-      laptop.essay = !laptop.essay; audio.play("switch");
-      if (laptop.essay && teacher.inCone) teacher.sus = Math.min(100, teacher.sus + 7);
-    }
-  } else if (e.code === "KeyB") { S.bookTarget = S.bookTarget ? 0 : 1; audio.play(S.bookTarget ? "book_open" : "book_close"); }
+  else if (e.code === "KeyB") { S.bookTarget = S.bookTarget ? 0 : 1; audio.play(S.bookTarget ? "book_open" : "book_close"); }
   else if (view.mode === "laptop") {
     const r = laptop.key(e.code, true);
     if (r === "switch") audio.play("switch", { volume: 0.6 });
@@ -212,6 +207,8 @@ function pause(on) {
 function toggleLaptop(force) {
   if (view.mode === "up" || force === true) {
     view.mode = "laptop"; audio.play("key", { rate: 0.7 }); S.preYaw = view.yaw; S.prePitch = view.pitch;
+    // she hears the lid if she's close
+    if (teacher.group.visible && teacher.distToPlayer() < 5) teacher.sus = Math.min(100, teacher.sus + 18);
   } else {
     view.mode = "up"; laptop.essay = false; audio.play("book_close", { volume: 0.4, rate: 1.4 });
     view.yaw = 0; view.pitch = -0.08;
@@ -251,11 +248,11 @@ function jumpscare({ strike = false, line = null, behind = false } = {}) {
   // put her right in your face
   teacher.visible(true); teacher.hideCone = true; teacher.cone.visible = false;
   const p = PLAYER_POS.clone().addScaledVector(fwd, 0.55);
-  const headH = (0.95 + 0.55 + 0.11 + 0.16 + 0.12 * ((S.cfg.neck || 1) - 1)) * (S.cfg.tall || 1);
+  const headH = (0.92 + 0.52 + 0.1 * (S.cfg.neck || 1) + 0.13) * (S.cfg.tall || 1);
   teacher.pos.set(p.x, PLAYER_POS.y - headH, p.z);
   teacher.yaw = Math.atan2(-fwd.x, -fwd.z); teacher.headYaw = 0; teacher.updateCone({});
   teacher.setFace("monster"); teacher.lean = 0.25;
-  teacher.arms.forEach((a) => (a.rotation.x = -1.5));
+  teacher.arms.forEach((a) => { a.rotation.set(-1.1, 0, 0); a.userData.elbow.rotation.x = -0.3; }); teacher.updateCone({});
   room.redLight.intensity = 2; room.redLight.position.set(PLAYER_POS.x, 1.6, PLAYER_POS.z - 0.2);
   audio.play(Math.random() < 0.5 ? "scare1" : "scare2", { vary: 0, cooldown: 0 });
   audio.play("scream", { vary: 0.05, cooldown: 0 });
@@ -355,7 +352,7 @@ function updateLightsOut(dt) {
     q.stage = 1;
     view.mode = "up"; view.yaw = 0; view.pitch = -0.12; laptop.essay = false;
     teacher.placeAt(PLAYER_POS.x, PLAYER_POS.z - 1.2, 0); teacher.lean = 0.75; teacher.setFace("grin"); view.pitch = 0.2;
-    teacher.arms.forEach((a) => (a.rotation.x = -1.35)); teacher.visible(true); teacher.hideCone = true; teacher.cone.visible = false;
+    teacher.arms.forEach((a) => { a.rotation.set(-0.7, 0, 0); a.userData.elbow.rotation.x = -0.5; }); teacher.updateCone({}); teacher.visible(true); teacher.hideCone = true; teacher.cone.visible = false;
     room.setLights(S.cfg.lights); S.lightsOut = false; audio.setLoop("hum", 1);
     audio.play("scare1", { cooldown: 0 }); audio.play("clang", { cooldown: 0 });
     psx.uniforms.uShake.value = 0.6; setTimeout(() => (psx.uniforms.uShake.value = 0), 500);
@@ -508,7 +505,7 @@ function update(dt, time) {
   const laptopActive = view.mode === "laptop" && room.lidOpen > 0.6;
   const out = laptop.update(dt, laptopActive);
   if (out.notify) { audio.play("notify", { volume: 1 }); if (teacher.distToPlayer() < 4.5) teacher.sus = Math.min(100, teacher.sus + 10); }
-  const bad = laptopActive && !laptop.essay;
+  const bad = room.lidOpen > 0.35; // any open laptop is against the rules
   if (bad) S.laptopTime += dt;
   const glanceMul = view.glance ? 0.5 : 1;
   if (bad && (out.drain > 0)) S.urge -= out.drain * glanceMul * dt;

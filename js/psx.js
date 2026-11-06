@@ -96,7 +96,7 @@ export class PSXRenderer {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(1);
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
-    this.height = 270;
+    this.height = 360;
     this.rt = new THREE.WebGLRenderTarget(16, 16, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true });
     this.uniforms = {
       tScene: { value: this.rt.texture }, uRes: { value: new THREE.Vector2() }, uTime: { value: 0 },
@@ -116,7 +116,7 @@ export class PSXRenderer {
     const lh = this.height, lw = Math.round(lh * w / h);
     this.rt.setSize(lw, lh);
     this.uniforms.uRes.value.set(lw, lh);
-    SNAP.value.set(lw / 2, lh / 2);
+    SNAP.value.set(lw / 1.5, lh / 1.5);
     this.aspect = w / h;
     this.onResize && this.onResize(this.aspect);
   }

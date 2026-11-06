@@ -12,7 +12,6 @@ A PS1-style stealth horror game that runs in the browser. You're a student in Ro
 | Space | Open / close your laptop |
 | Shift (hold, on laptop) | Glance up: you see the room more clearly, but have less fun |
 | 1 / 2 / 3 | MeTube / Block Dodge / Chat |
-| Tab | Panic button: switch to your fake essay |
 | B | Raise your textbook to block her view |
 | A / D | Move in Block Dodge |
 | V | Laptop sound on or off (more fun, but she can hear it) |
@@ -23,7 +22,7 @@ A PS1-style stealth horror game that runs in the browser. You're a student in Ro
 
 - **FUN** has to pass the white line before the bell.
 - **URGE** rises while you pay attention. If it maxes out, your laptop opens on its own and something loud plays.
-- **Her vision cone** is drawn on the floor. If your screen is inside it, the eye meter fills, and when it's full you're caught. Three strikes and you're out.
+- **Laptops are banned.** If she sees your laptop open, the red meter fills in about a second and you're caught. Her vision cone is drawn on the floor and reaches all the way to the back of the room. Three strikes and you're out.
 - **Listen for her tells.** When the chalk stops, she's about to turn around. Later in the week the chalk doesn't always stop first.
 - **Things move when you're not looking.** That includes her.
 
