@@ -89,9 +89,9 @@ export function makeSeated(o) {
   if (o.hood) { const hd = add(cyl(0.16, 0.18, 0.08, 10), shirt, 0, 1.02, -0.05, "cloth"); hd.scale.z = 0.7; }
   // arms resting on the desk
   for (const s of [-1, 1]) {
-    const up = add(cap(0.052, 0.18), shirt, 0.22 * s, 0.88, 0.07, "cloth"); up.rotation.x = -0.62; up.rotation.z = 0.12 * s;
-    const fo = add(cap(0.046, 0.2), o.short ? skin : shirt, 0.19 * s, 0.8, 0.27, o.short ? "skin" : "cloth"); fo.rotation.x = Math.PI / 2; fo.rotation.y = -0.25 * s;
-    add(sph(0.045, 6, 5), skin, 0.13 * s, 0.8, 0.41, "skin");
+    const up = add(cap(0.052, 0.18), shirt, 0.22 * s, 0.89, 0.07, "cloth"); up.rotation.x = -0.62; up.rotation.z = 0.12 * s;
+    const fo = add(cap(0.046, 0.2), o.short ? skin : shirt, 0.19 * s, 0.815, 0.27, o.short ? "skin" : "cloth"); fo.rotation.x = Math.PI / 2; fo.rotation.y = -0.25 * s;
+    add(sph(0.045, 6, 5), skin, 0.13 * s, 0.81, 0.41, "skin");
   }
   // neck + head
   add(cyl(0.05, 0.055, 0.1, 8), skin, 0, 1.05, 0, "skin");
@@ -115,10 +115,13 @@ export function makeSeated(o) {
 export function makeTeacherBody(faceTex) {
   const g = new THREE.Group();
   const card = col("#6e1e2a"), blouse = col("#e8e0d0"), skirt = col("#262636"), stock = col("#2a1c1c"), skin = col("#e6c6a4"), hair = col("#77777c"), shoe = col("#121212");
+  const legs = [];
   for (const s of [-1, 1]) {
-    mesh(cap(0.05, 0.44), stock, 0.085 * s, 0.31, 0, g);
-    mesh(bx(0.08, 0.05, 0.18), shoe, 0.085 * s, 0.05, 0.04, g);
-    mesh(bx(0.03, 0.07, 0.03), shoe, 0.085 * s, 0.035, -0.04, g);
+    const hip = new THREE.Group(); hip.position.set(0.085 * s, 0.6, 0); g.add(hip);
+    mesh(cap(0.05, 0.44), stock, 0, -0.29, 0, hip);
+    mesh(bx(0.08, 0.05, 0.18), shoe, 0, -0.55, 0.04, hip);
+    mesh(bx(0.03, 0.07, 0.03), shoe, 0, -0.565, -0.04, hip);
+    legs.push(hip);
   }
   const sk = mesh(cyl(0.16, 0.21, 0.44, 10), skirt, 0, 0.71, 0, g); sk.scale.z = 0.72;
   const body = new THREE.Group(); body.position.y = 0.92; g.add(body);
@@ -147,7 +150,7 @@ export function makeTeacherBody(faceTex) {
   const gm = col("#141414");
   for (const s of [-1, 1]) mesh(geo("tLens", () => new THREE.TorusGeometry(0.03, 0.005, 4, 10)), gm, 0.043 * s, 0.13, 0.12, headPivot);
   mesh(bx(0.03, 0.006, 0.006), gm, 0, 0.13, 0.122, headPivot);
-  return { group: g, body, arms, neck, neckMesh, headPivot, head, faceMat };
+  return { group: g, body, arms, legs, neck, neckMesh, headPivot, head, faceMat };
 }
 
 // ---------- furniture
@@ -155,8 +158,8 @@ export function makeDesk(woodM) {
   const d = new THREE.Group();
   const metal = col("#5a5e66"), dark = col("#2e3034");
   mesh(bx(1.0, 0.04, 0.6), woodM, 0, 0.74, 0, d);
-  mesh(bx(1.0, 0.02, 0.02), col("#3a2a1a"), 0, 0.73, 0.3, d);
-  mesh(bx(0.9, 0.1, 0.48), dark, 0, 0.64, -0.03, d); // book box
+  mesh(bx(0.98, 0.015, 0.015), col("#3a2a1a"), 0, 0.71, 0.29, d);
+  mesh(bx(0.88, 0.1, 0.46), dark, 0, 0.64, -0.03, d); // book box
   for (const [x, z] of [[-0.45, -0.25], [0.45, -0.25], [-0.45, 0.25], [0.45, 0.25]]) mesh(cyl(0.017, 0.017, 0.6, 6), metal, x, 0.32, z, d);
   for (const x of [-0.45, 0.45]) { mesh(bx(0.03, 0.025, 0.56), metal, x, 0.02, 0, d); }
   mesh(bx(0.9, 0.02, 0.02), metal, 0, 0.12, -0.25, d);
@@ -166,7 +169,7 @@ export function makeChair(plasticM, rolling = false) {
   const g = new THREE.Group();
   const metal = col("#4e525a");
   const seat = mesh(bx(0.42, 0.04, 0.4), plasticM, 0, 0.45, 0, g);
-  const lip = mesh(bx(0.42, 0.03, 0.04), plasticM, 0, 0.44, -0.2, g);
+  const lip = mesh(bx(0.38, 0.03, 0.04), plasticM, 0, 0.425, -0.2, g);
   const back = mesh(bx(0.42, 0.28, 0.03), plasticM, 0, 0.78, 0.2, g); back.rotation.x = -0.12;
   for (const x of [-0.17, 0.17]) mesh(cyl(0.014, 0.014, 0.36, 5), metal, x, 0.62, 0.2, g);
   if (rolling) {

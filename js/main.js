@@ -238,19 +238,35 @@ function drawScareFace() {
   g.fillStyle = "rgba(160,0,0,0.25)"; g.fillRect(0, 0, 160, 120);
   for (let i = 0; i < 300; i++) { scareG.fillStyle = `rgba(255,255,255,${Math.random() * 0.2})`; scareG.fillRect(Math.random() * 160, Math.random() * 120, 2, 1); }
 }
-function jumpscare({ strike = false, line = null, behind = false } = {}) {
+function jumpscare({ strike = false, line = null, behind = false, level = null } = {}) {
   mode = "scare";
   audio.stopVoice();
   view.mode = "up"; laptop.essay = false;
+  const lvl = level ?? (S.cfg.scareLevel || 3);
   const yaw = behind ? Math.PI : 0;
-  view.yaw = yaw; view.pitch = 0; applyView(1);
-  const fwd = new THREE.Vector3(Math.sin(yaw) * -1, 0, -Math.cos(yaw));
-  // put her right in your face
+  view.yaw = yaw; view.pitch = lvl === 1 ? 0.12 : 0; applyView(1);
+  const fwd = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
   teacher.visible(true); teacher.hideCone = true; teacher.cone.visible = false;
-  const p = PLAYER_POS.clone().addScaledVector(fwd, 0.55);
   const headH = (0.92 + 0.52 + 0.1 * (S.cfg.neck || 1) + 0.13) * (S.cfg.tall || 1);
+  if (lvl === 1) {
+    // Wednesday: unsettling, not a full scare. She's simply standing right there, smiling.
+    const p = PLAYER_POS.clone().addScaledVector(fwd, 1.15);
+    teacher.pos.set(p.x, 0, p.z);
+    teacher.yaw = Math.atan2(-fwd.x, -fwd.z); teacher.headYaw = 0; teacher.turnLead = 0; teacher.lean = 0.35;
+    teacher.setFace("smile");
+    teacher.arms.forEach((a) => { a.rotation.set(0.05, 0, 0); a.userData.elbow.rotation.x = -0.2; }); teacher.updateCone({});
+    teacher.headPivot.rotation.z = 0.35; // head tilt
+    audio.play("thump", { volume: 0.7, cooldown: 0 });
+    audio.play("whisper", { volume: 0.5, cooldown: 0 });
+    if (line) setTimeout(() => say(line), 300);
+    psx.uniforms.uShake.value = 0.12; setTimeout(() => (psx.uniforms.uShake.value = 0), 250);
+    S.seq = { t: 0, dur: 1.8, kind: "scare", strike };
+    return;
+  }
+  // put her right in your face
+  const p = PLAYER_POS.clone().addScaledVector(fwd, 0.55);
   teacher.pos.set(p.x, PLAYER_POS.y - headH, p.z);
-  teacher.yaw = Math.atan2(-fwd.x, -fwd.z); teacher.headYaw = 0; teacher.updateCone({});
+  teacher.yaw = Math.atan2(-fwd.x, -fwd.z); teacher.headYaw = 0; teacher.turnLead = 0;
   teacher.setFace("monster"); teacher.lean = 0.25;
   teacher.arms.forEach((a) => { a.rotation.set(-1.1, 0, 0); a.userData.elbow.rotation.x = -0.3; }); teacher.updateCone({});
   room.redLight.intensity = 2; room.redLight.position.set(PLAYER_POS.x, 1.6, PLAYER_POS.z - 0.2);
@@ -320,7 +336,7 @@ function runFx(fx) {
       // only fires if you're on the laptop; otherwise retry a bit later
       if (view.mode === "laptop" && !laptop.essay) {
         laptop.buffering = 0; laptop.showReflection(1.3);
-        audio.play("glitch"); setTimeout(() => { audio.play("scare2", { volume: 0.8 }); psx.uniforms.uShake.value = 0.4; setTimeout(() => (psx.uniforms.uShake.value = 0), 400); }, 150);
+        audio.play("glitch"); setTimeout(() => { audio.play("whisper", { volume: 0.7 }); audio.play("thump", { volume: 0.4 }); }, 150);
         teacher.goToBoardNow();
       } else S.events.push({ t: S.t / cfg.dur + 0.04, fx: "reflection" });
       break;

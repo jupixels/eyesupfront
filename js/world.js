@@ -88,23 +88,27 @@ export class Classroom {
     };
     mkWall(RW * 2, 0, FZ, 0); mkWall(RW * 2, 0, BZ, Math.PI); mkWall(BZ - FZ, -RW, (FZ + BZ) / 2, Math.PI / 2); mkWall(BZ - FZ, RW, (FZ + BZ) / 2, -Math.PI / 2);
     // corner trim columns hide the seams
-    for (const [x, z] of [[-RW, FZ], [RW, FZ], [-RW, BZ], [RW, BZ]]) mesh(bx(0.12, H, 0.12), col("#c9c0a6"), x, H / 2, z, S);
-    // crown molding
+    for (const [x, z] of [[-RW, FZ], [RW, FZ], [-RW, BZ], [RW, BZ]]) mesh(bx(0.16, H, 0.16), col("#c9c0a6"), x, H / 2, z, S);
+    // crown molding (stops at the corner columns)
     const crown = col("#d8d0b8");
-    mesh(bx(RW * 2, 0.08, 0.06), crown, 0, H - 0.04, FZ + 0.03, S); mesh(bx(RW * 2, 0.08, 0.06), crown, 0, H - 0.04, BZ - 0.03, S);
-    mesh(bx(0.06, 0.08, BZ - FZ), crown, -RW + 0.03, H - 0.04, (FZ + BZ) / 2, S); mesh(bx(0.06, 0.08, BZ - FZ), crown, RW - 0.03, H - 0.04, (FZ + BZ) / 2, S);
+    mesh(bx(RW * 2 - 0.16, 0.08, 0.05), crown, 0, H - 0.04, FZ + 0.025, S); mesh(bx(RW * 2 - 0.16, 0.08, 0.05), crown, 0, H - 0.04, BZ - 0.025, S);
+    mesh(bx(0.05, 0.08, BZ - FZ - 0.16), crown, -RW + 0.025, H - 0.04, (FZ + BZ) / 2, S); mesh(bx(0.05, 0.08, BZ - FZ - 0.16), crown, RW - 0.025, H - 0.04, (FZ + BZ) / 2, S);
 
     // ---------- chalkboard
     this.boardT = canvasTex(512, 160, () => {});
     const frameM = lit({ map: this.woodT });
-    mesh(bx(7.3, 2.3, 0.06), frameM, 0, 1.75, FZ + 0.03, S);
-    mesh(new THREE.PlaneGeometry(7, 2.05, 8, 3), lit({ map: this.boardT }), 0, 1.75, FZ + 0.065, S);
-    mesh(bx(7.1, 0.04, 0.14), frameM, 0, 0.7, FZ + 0.1, S);
-    for (const [x, c] of [[-2.2, "#f4f4ee"], [-2.05, "#f6e070"], [1.4, "#f4f4ee"]]) { const ch = mesh(cyl(0.008, 0.008, 0.08, 5), col(c), x, 0.73, FZ + 0.12, S); ch.rotation.z = Math.PI / 2; }
-    mesh(bx(0.16, 0.04, 0.06), col("#3a3530"), 2.6, 0.74, FZ + 0.12, S);
-    mesh(bx(0.16, 0.015, 0.06), col("#cfcfc8"), 2.6, 0.715, FZ + 0.12, S);
+    const slate = col("#24382c");
+    const boardFace = lit({ map: this.boardT });
+    mesh(new THREE.BoxGeometry(7, 2.05, 0.04, 8, 3, 1), [slate, slate, slate, slate, boardFace, slate], 0, 1.75, FZ + 0.02, S);
+    mesh(bx(7.16, 0.08, 0.07), frameM, 0, 1.75 + 1.065, FZ + 0.035, S);
+    mesh(bx(7.16, 0.08, 0.07), frameM, 0, 1.75 - 1.065, FZ + 0.035, S);
+    for (const sx of [-1, 1]) mesh(bx(0.08, 2.05, 0.07), frameM, sx * 3.54, 1.75, FZ + 0.035, S);
+    mesh(bx(7.0, 0.035, 0.12), frameM, 0, 0.62, FZ + 0.06, S);
+    for (const [x, c] of [[-2.2, "#f4f4ee"], [-2.05, "#f6e070"], [1.4, "#f4f4ee"]]) { const ch = mesh(cyl(0.008, 0.008, 0.08, 5), col(c), x, 0.646, FZ + 0.08, S); ch.rotation.z = Math.PI / 2; }
+    mesh(bx(0.16, 0.035, 0.06), col("#3a3530"), 2.6, 0.655, FZ + 0.08, S);
+    mesh(bx(0.15, 0.012, 0.055), col("#cfcfc8"), 2.6, 0.632, FZ + 0.08, S);
     // projector screen housing + speaker
-    mesh(cyl(0.07, 0.07, 3.2, 8), col("#d8d8d8"), 0, 2.98, FZ + 0.12, S).rotation.z = Math.PI / 2;
+    mesh(cyl(0.07, 0.07, 3.2, 8), col("#d8d8d8"), 0, 2.99, FZ + 0.14, S).rotation.z = Math.PI / 2;
     mesh(bx(0.4, 0.3, 0.16), col("#2c2c2c"), -5.4, 2.8, FZ + 0.08, S);
     this.setBoard(["Photosynthesis", "6CO2 + 6H2O + light -> C6H12O6 + 6O2", "chlorophyll = green!"]);
 
@@ -112,7 +116,7 @@ export class Classroom {
     this.clockT = canvasTex(64, 64, () => {});
     const clock = new THREE.Group(); clock.position.set(4.6, 2.72, FZ + 0.03); S.add(clock);
     const rim = mesh(cyl(0.3, 0.3, 0.06, 16), col("#1c1c1c"), 0, 0, 0, clock); rim.rotation.x = Math.PI / 2;
-    const face = mesh(new THREE.CircleGeometry(0.27, 16), flat({ map: this.clockT }), 0, 0, 0.035, clock);
+    const face = mesh(new THREE.CircleGeometry(0.27, 16), flat({ map: this.clockT }), 0, 0, 0.045, clock);
     this.clock = face;
     this.setClock(12 * 60 + 60);
 
@@ -128,7 +132,7 @@ export class Classroom {
     // ---------- teacher desk
     const td = new THREE.Group(); td.position.set(-4.3, 0, -6.6); S.add(td);
     mesh(bx(2.0, 0.06, 0.9), woodM, 0, 0.78, 0, td);
-    mesh(bx(2.0, 0.72, 0.04), woodM, 0, 0.39, 0.42, td);
+    mesh(bx(1.84, 0.72, 0.04), woodM, 0, 0.39, 0.41, td);
     for (const x of [-0.95, 0.95]) mesh(bx(0.06, 0.75, 0.86), woodM, x, 0.38, 0, td);
     for (let i = 0; i < 3; i++) mesh(bx(0.5, 0.18, 0.02), col("#a0743e"), 0.6, 0.6 - i * 0.22, -0.44, td);
     this.apple = mesh(sph(0.065, 8, 6), col("#b81818"), 0.6, 0.875, 0.1, td);
@@ -251,7 +255,7 @@ export class Classroom {
     }
     // paper sheets on desks
     const paperT = canvasTex(16, 20, (g) => { g.fillStyle = "#f4f2ea"; g.fillRect(0, 0, 16, 20); g.fillStyle = "#9ab"; for (let i = 3; i < 20; i += 2) g.fillRect(0, i, 16, 1); g.fillStyle = "#555"; for (let i = 4; i < 16; i += 2) g.fillRect(2, i, 6 + Math.random() * 6, 1); });
-    for (const d of this.desks) { if (d.c === 2 && d.r === 2) continue; if (Math.random() < 0.6) { const p = mesh(new THREE.PlaneGeometry(0.22, 0.28), lit({ map: paperT }), COLS[d.c] + rand(-0.25, 0.25), 0.762, ROWS[d.r] + rand(-0.1, 0.1), this.scene); p.rotation.set(-Math.PI / 2, 0, rand(-0.4, 0.4)); } }
+    for (const d of this.desks) { if (d.c === 2 && d.r === 2) continue; if (Math.random() < 0.6) { const p = mesh(new THREE.PlaneGeometry(0.22, 0.28), decal({ map: paperT }), COLS[d.c] + rand(-0.25, 0.25), 0.765, ROWS[d.r] + rand(-0.1, 0.1), this.scene); p.rotation.set(-Math.PI / 2, 0, rand(-0.4, 0.4)); } }
 
     // ---------- classmates
     this.students = [];
@@ -292,33 +296,38 @@ export class Classroom {
     const x = PLAYER_POS.x, z = ROWS[2];
     this.laptop = new THREE.Group();
     const baseM = col("#9aa0a8"), darkM = col("#2a2a2e");
-    mesh(bx(0.46, 0.02, 0.3), baseM, 0, 0.01, 0, this.laptop);
-    // keys
-    const keyT = canvasTex(64, 24, (g) => { g.fillStyle = "#1e1e22"; g.fillRect(0, 0, 64, 24); g.fillStyle = "#3a3a40"; for (let r = 0; r < 4; r++) for (let c = 0; c < 14; c++) g.fillRect(1 + c * 4.5, 1 + r * 4.5, 3.5, 3.5); g.fillRect(16, 19, 30, 4); });
-    const kb = mesh(new THREE.PlaneGeometry(0.4, 0.14), lit({ map: keyT }), 0, 0.0205, -0.03, this.laptop); kb.rotation.x = -Math.PI / 2;
-    const pad = mesh(new THREE.PlaneGeometry(0.12, 0.07), col("#8a9098"), 0, 0.0205, 0.09, this.laptop); pad.rotation.x = -Math.PI / 2;
+    const deckT = canvasTex(128, 84, (g) => {
+      g.fillStyle = "#9aa0a8"; g.fillRect(0, 0, 128, 84);
+      g.fillStyle = "#1e1e22"; g.fillRect(8, 6, 112, 42);
+      g.fillStyle = "#3c3c44"; for (let r = 0; r < 5; r++) for (let c = 0; c < 14; c++) g.fillRect(10 + c * 7.8, 8 + r * 7.6, 6.4, 6.2);
+      g.fillStyle = "#3c3c44"; g.fillRect(36, 46, 52, 0);
+      g.fillStyle = "#8a9098"; g.fillRect(44, 54, 40, 24); g.fillStyle = "#7e848c"; g.fillRect(44, 77, 40, 1);
+      noise(g, 128, 84, 5);
+    });
+    mesh(bx(0.46, 0.02, 0.3), [baseM, baseM, lit({ map: deckT }), baseM, baseM, baseM], 0, 0.01, 0, this.laptop);
     this.lid = new THREE.Group(); this.lid.position.set(0, 0.02, -0.15);
-    mesh(bx(0.46, 0.3, 0.012), baseM, 0, 0.15, -0.007, this.lid);
-    mesh(bx(0.45, 0.29, 0.002), darkM, 0, 0.15, -0.0005, this.lid);
+    const bezelT = canvasTex(32, 20, (g) => { g.fillStyle = "#1a1a1e"; g.fillRect(0, 0, 32, 20); g.fillStyle = "#333"; g.fillRect(15, 0, 2, 1); });
+    mesh(bx(0.46, 0.3, 0.012), [baseM, baseM, baseM, baseM, lit({ map: bezelT }), baseM], 0, 0.15, -0.006, this.lid);
     this.screenCanvas = document.createElement("canvas"); this.screenCanvas.width = 256; this.screenCanvas.height = 160;
     this.screenT = new THREE.CanvasTexture(this.screenCanvas);
     this.screenT.magFilter = THREE.NearestFilter; this.screenT.minFilter = THREE.NearestFilter; this.screenT.generateMipmaps = false; this.screenT.colorSpace = THREE.SRGBColorSpace;
     this.screenMat = new THREE.MeshBasicMaterial({ map: this.screenT });
-    this.screen = mesh(new THREE.PlaneGeometry(0.43, 0.27), this.screenMat, 0, 0.15, 0.002, this.lid);
+    this.screenMat.polygonOffset = true; this.screenMat.polygonOffsetFactor = -2; this.screenMat.polygonOffsetUnits = -2;
+    this.screen = mesh(new THREE.PlaneGeometry(0.43, 0.27), this.screenMat, 0, 0.15, 0.004, this.lid);
     this.laptop.add(this.lid);
     this.laptop.position.set(x, 0.76, z + 0.1);
     S.add(this.laptop);
     this.setLid(0.25);
     // stickers on the lid back
-    const st = mesh(new THREE.CircleGeometry(0.04, 8), col("#e05090"), 0.1, 0.2, -0.0135, this.lid); st.rotation.y = Math.PI;
-    const st2 = mesh(new THREE.PlaneGeometry(0.07, 0.05), col("#50c0e0"), -0.12, 0.1, -0.0135, this.lid); st2.rotation.set(0, Math.PI, 0.3);
+    const st = mesh(new THREE.CircleGeometry(0.04, 8), col("#e05090"), 0.1, 0.2, -0.016, this.lid); st.rotation.y = Math.PI;
+    const st2 = mesh(new THREE.PlaneGeometry(0.07, 0.05), col("#50c0e0"), -0.12, 0.1, -0.016, this.lid); st2.rotation.set(0, Math.PI, 0.3);
     // book
     this.book = new THREE.Group();
-    mesh(bx(0.36, 0.48, 0.04), col("#8a1a1a"), 0, 0.24, 0, this.book);
-    mesh(bx(0.34, 0.46, 0.035), col("#efe8d8"), 0.008, 0.24, 0, this.book);
-    const label = mesh(new THREE.PlaneGeometry(0.26, 0.12), lit({ map: canvasTex(64, 32, (g) => { g.fillStyle = "#e8e0c0"; g.fillRect(0, 0, 64, 32); g.fillStyle = "#222"; g.font = "bold 12px monospace"; g.fillText("BIOLOGY", 5, 20); }) }), 0, 0.32, -0.021, this.book);
+    const pagesM = col("#efe8d8"), coverM = col("#8a1a1a");
+    mesh(bx(0.36, 0.48, 0.04), [pagesM, coverM, pagesM, pagesM, coverM, coverM], 0, 0.24, 0, this.book);
+    const label = mesh(new THREE.PlaneGeometry(0.26, 0.12), lit({ map: canvasTex(64, 32, (g) => { g.fillStyle = "#e8e0c0"; g.fillRect(0, 0, 64, 32); g.fillStyle = "#222"; g.font = "bold 12px monospace"; g.fillText("BIOLOGY", 5, 20); }) }), 0, 0.32, -0.025, this.book);
     label.rotation.y = Math.PI;
-    this.bookHome = new THREE.Vector3(x - 0.34, 0.76, z - 0.02); this.bookRaised = new THREE.Vector3(x, 0.76, z - 0.2);
+    this.bookHome = new THREE.Vector3(x - 0.34, 0.785, z - 0.02); this.bookRaised = new THREE.Vector3(x, 0.76, z - 0.2);
     this.bookUp = 0; this.setBook(0);
     S.add(this.book);
     // pencil case + water bottle

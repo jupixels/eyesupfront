@@ -47,7 +47,7 @@ const without = (...n) => ALL.filter((x) => !n.includes(x));
 
 export const DAYS = [
   {
-    name: "MONDAY", dur: 100, quota: 70, urge: 4.6,
+    name: "MONDAY", dur: 100, quota: 70, urge: 3.2,
     coneHalf: 0.42, coneRange: 14, detect: 0.9, writeMin: 4, writeMax: 7, tellMin: 1.0, tellMax: 1.4, watchMin: 2, watchMax: 3, patrol: 0.25,
     lights: 1, windows: "day", grain: 0.03, vig: 1.0, face: "normal", creep: 0, ambience: true,
     present: ALL, photos: [],
@@ -68,7 +68,7 @@ export const DAYS = [
     ],
   },
   {
-    name: "TUESDAY", dur: 105, quota: 80, urge: 5.2,
+    name: "TUESDAY", dur: 105, quota: 80, urge: 3.6,
     coneHalf: 0.46, coneRange: 14.5, detect: 1.0, writeMin: 3.5, writeMax: 6.5, tellMin: 0.85, tellMax: 1.2, watchMin: 2, watchMax: 3.2, patrol: 0.3, lie: 0.06,
     lights: 0.95, windows: "day", grain: 0.04, vig: 1.1, face: "normal", creep: 0.02, creepKinds: ["roller"], ambience: true,
     present: without("Tyler"), photos: [],
@@ -88,10 +88,10 @@ export const DAYS = [
     ],
   },
   {
-    name: "WEDNESDAY", dur: 110, quota: 88, urge: 5.8,
+    name: "WEDNESDAY", dur: 110, quota: 88, urge: 4.0,
     coneHalf: 0.5, coneRange: 15, detect: 1.1, writeMin: 3.2, writeMax: 6, tellMin: 0.7, tellMax: 1.0, watchMin: 2.2, watchMax: 3.5, patrol: 0.35, lie: 0.16, swivel: 0.05,
     lights: 0.8, windows: "dusk", grain: 0.06, vig: 1.4, face: "smile", creep: 0.07, creepKinds: ["roller", "ruler", "head", "poster"], ambience: true, drone: 0.25, coneFlicker: true,
-    jumpscareOnCatch: true,
+    jumpscareOnCatch: true, scareLevel: 1,
     present: without("Tyler", "Jayden", "Mia"), photos: [],
     board: ["Photosynthesis", "attention -> energy", "plants turn toward the light", "EYES UP FRONT"],
     lines: ["d3_2", "d3_3", "d3_4", "d3_5", "d1_6"],
@@ -109,7 +109,7 @@ export const DAYS = [
     ],
   },
   {
-    name: "THURSDAY", dur: 115, quota: 92, urge: 6.4,
+    name: "THURSDAY", dur: 115, quota: 92, urge: 4.5,
     coneHalf: 0.55, coneRange: 16, detect: 1.25, writeMin: 3, writeMax: 5.5, tellMin: 0.55, tellMax: 0.9, watchMin: 2.5, watchMax: 4, patrol: 0.4, lie: 0.25, swivel: 0.08,
     lights: 0.55, windows: "black", grain: 0.055, vig: 1.8, face: "wrong", creep: 0.13, creepKinds: ["roller", "ruler", "head", "poster", "door", "board"], drone: 0.5, coneFlicker: true, coneColor: 0xffa0a0,
     jumpscareOnCatch: true, mannequins: true, stalkFrom: 0.58, stalkSpeed: 0.8, voiceRate: 0.95,
@@ -131,7 +131,7 @@ export const DAYS = [
     ],
   },
   {
-    name: "FRIDAY", dur: 110, quota: 0, urge: 7.8,
+    name: "FRIDAY", dur: 110, quota: 0, urge: 5.4,
     coneHalf: 0.62, coneRange: 17, detect: 1.4, writeMin: 2.5, writeMax: 4.5, tellMin: 0.4, tellMax: 0.7, watchMin: 3, watchMax: 4, patrol: 0.3, lie: 0.35,
     lights: 0.3, windows: "hands", grain: 0.06, vig: 2.0, face: "grin", creep: 0.15, creepKinds: ["roller", "ruler", "poster", "door", "board"], drone: 0.8, coneColor: 0xff3030, coneOpacity: 0.22,
     jumpscareOnCatch: true, stalkFrom: 0, stalkSpeed: 1.0, tall: 1.22, neck: 2.6, glow: true, red: 0.35, voiceRate: 0.9, finalDay: true,

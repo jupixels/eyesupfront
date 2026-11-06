@@ -29,7 +29,7 @@ export class Teacher {
 
   build() {
     const b = makeTeacherBody(this.faces.normal);
-    Object.assign(this, { group: b.group, body: b.body, arms: b.arms, neck: b.neck, neckMesh: b.neckMesh, headPivot: b.headPivot, head: b.head, faceMat: b.faceMat });
+    Object.assign(this, { group: b.group, body: b.body, arms: b.arms, legs: b.legs, neck: b.neck, neckMesh: b.neckMesh, headPivot: b.headPivot, head: b.head, faceMat: b.faceMat });
     this.scene.add(this.group);
     // eye glints (visible in the dark on late days)
     this.eyeGlow = new THREE.Group();
@@ -78,12 +78,13 @@ export class Teacher {
   toPlayer() { return new THREE.Vector2(PLAYER_POS.x - this.pos.x, PLAYER_POS.z - this.pos.z); }
   distToPlayer() { return this.toPlayer().length(); }
   yawToPlayer() { const v = this.toPlayer(); return Math.atan2(v.x, v.y); }
-  turnTo(target, rate, dt) { const d = angDiff(this.yaw, target); const s = Math.sign(d) * Math.min(Math.abs(d), rate * dt); this.yaw += s; return Math.abs(d) < 0.05; }
+  turnTo(target, rate, dt) { const d = angDiff(this.yaw, target); const s = Math.sign(d) * Math.min(Math.abs(d), rate * dt); this.yaw += s; if (Math.abs(d) > 0.3) this.turnLead = Math.max(-0.6, Math.min(0.6, d * 0.5)); return Math.abs(d) < 0.05; }
   walk(dt, speed) {
     if (!this.path.length) return true;
     const t = this.path[0];
     const dx = t.x - this.pos.x, dz = t.z - this.pos.z, d = Math.hypot(dx, dz);
     const step = speed * dt;
+    this.moving = true;
     if (d <= step) { this.pos.x = t.x; this.pos.z = t.z; this.path.shift(); return !this.path.length; }
     this.pos.x += dx / d * step; this.pos.z += dz / d * step;
     this.turnTo(Math.atan2(dx, dz), 6, dt);
@@ -142,7 +143,8 @@ export class Teacher {
         break;
       }
       case "tell":
-        this.yaw = Math.PI; this.timer -= dt;
+        // chalk stops, arm drops, and she glances over her shoulder
+        this.yaw = Math.PI; this.timer -= dt; this.turnLead = 0.45;
         if (this.timer <= 0) { this.state = "turn"; }
         break;
       case "turn": {
@@ -204,20 +206,43 @@ export class Teacher {
   }
 
   animate(dt) {
-    const s = Math.sin(this.walkPhase || 0);
-    this.arms[0].rotation.x = this.armWrite ? -2.5 + Math.sin(performance.now() / 120) * 0.12 : s * 0.3;
-    this.arms[0].rotation.z = this.armWrite ? 0.25 : 0;
-    this.arms[0].userData.elbow.rotation.x = this.armWrite ? -0.5 : -0.15;
-    this.arms[1].rotation.x = -s * 0.3;
-    this.arms[1].userData.elbow.rotation.x = this.armWrite ? -1.2 : -0.15;
-    if (this.armWrite) this.headYaw = this.swivel ? this.headYaw : 0;
+    const t = performance.now() / 1000;
+    this.animT = (this.animT || 0) + dt;
+    const moving = this.moving; this.moving = false;
+    this.walkBlend = (this.walkBlend || 0) + ((moving ? 1 : 0) - (this.walkBlend || 0)) * Math.min(1, dt * 8);
+    const ph = this.walkPhase || 0, s = Math.sin(ph), wb = this.walkBlend;
+    const [L, R] = this.arms;
+    // legs + hips
+    this.legs[0].rotation.x = s * 0.45 * wb; this.legs[1].rotation.x = -s * 0.45 * wb;
+    this.body.position.y = 0.92 + Math.abs(Math.cos(ph)) * 0.02 * wb + Math.sin(t * 1.7) * 0.004;
+    this.body.rotation.z = s * 0.035 * wb;
+    this.body.rotation.x = (this.lean || 0) + 0.04 * wb + Math.sin(t * 1.7) * 0.008;
+    if (this.armWrite) {
+      // writing on the board: chalk hand makes little strokes, other hand holds the book at her side
+      const w = this.animT * 6.5;
+      L.rotation.set(-2.4 + Math.sin(w) * 0.07, 0, 0.28 + Math.cos(w * 0.55) * 0.14);
+      L.userData.elbow.rotation.x = -0.45 + Math.sin(w * 1.4) * 0.12;
+      R.rotation.set(0.08, 0, 0.1); R.userData.elbow.rotation.x = -1.1;
+      this.headPivot.rotation.x = -0.14 + Math.sin(w * 0.5) * 0.03;
+    } else {
+      // natural arm swing while walking, relaxed when standing
+      L.rotation.set(-s * 0.38 * wb + 0.04, 0, -0.07); L.userData.elbow.rotation.x = -0.18 - 0.2 * wb;
+      R.rotation.set(s * 0.38 * wb + 0.04, 0, 0.07); R.userData.elbow.rotation.x = -0.18 - 0.2 * wb;
+      // standing still she tilts her head down a little to look over her glasses
+      const look = this.state === "watch" || this.state === "patrolLook" || this.state === "investigate" ? 0.1 : 0;
+      this.headPivot.rotation.x += (look - this.headPivot.rotation.x) * Math.min(1, dt * 4);
+    }
+    this.headPivot.rotation.z = Math.sin(t * 0.8) * 0.03 + (this.state === "watch" ? Math.sin(t * 0.5) * 0.06 : 0);
+    // the head leads when she turns (visual only)
+    this.turnLead = (this.turnLead || 0) * Math.exp(-dt * 5);
+    this.headPivot.rotation.y = this.headYaw + this.turnLead;
   }
 
   updateCone(ctx) {
     this.cone.position.x = this.pos.x; this.cone.position.z = this.pos.z;
     this.cone.rotation.y = this.lookYaw();
     this.group.rotation.y = this.yaw;
-    this.headPivot.rotation.y = this.headYaw;
+    this.headPivot.rotation.y = this.headYaw + (this.turnLead || 0);
     this.body.rotation.x = this.lean || 0;
     const hot = Math.min(1, this.sus / 100);
     const base = new THREE.Color(this.cfg.coneColor || 0xfff2a0);
